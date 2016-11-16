@@ -1,0 +1,21 @@
+<div class="post">
+  <div class="post-heading">
+    <div class="post-title">
+      {{p.subject}}
+    </div>
+
+    <div class="post-date">
+      {{p.created.strftime("%b %d, %Y")}}
+    </div>
+    <div> Edit </div>
+
+  </div>
+
+  <div class="post-content">
+    {{p._render_text | safe}}
+  </div>
+  <div class="delete-post">
+    <a href="/delete?delete={{p}}">Delete</a>
+  </div>
+
+</div>

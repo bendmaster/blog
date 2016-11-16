@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="../static/login.css">
+  <title>Blog Sign-up</title>
+</head>
+<body>
+<div class="login-page">
+  <div class="form">
+    <form class="login-form" method="post">
+      <input type="text" name="username" value="{{username}}" placeholder="username" />
+        <div class=error> {{error_username}} </div>
+      <input type="password" name="password" value="" placeholder="password">
+        <div class=error> {{error_password}} </div>
+      <input type="password" name="verify" value="" placeholder="verify your password">
+        <div class=error> {{error_verify}} </div>
+      <input type="text" name="email" value="{{email}}" placeholder="email address" />
+        <div class=error> {{error_email}} </div>
+      <div class="error">
+        {{error}}
+      </div>
+      <button>submit</button>
+      <p class="message">Already registered? <a href="/login">Login</a></p>
+    </form>
+  </div>
+</div>
+</body>
+
+
+</html>

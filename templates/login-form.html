@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="../static/login.css">
+  <title>BLogin</title>
+</head>
+<body>
+<div class="login-page">
+  <div class="form">
+    <form class="login-form" method="post">
+      <input type="text" name="username" value="{{username}}" placeholder="username" />
+      <input type="password" name="password" value="" placeholder="password">
+      <div class="error">
+        {{error}}
+      </div>
+      <button>login</button>
+      <p class="message">Not registered? <a href="/signup">Create an account</a></p>
+    </form>
+  </div>
+</div>
+</body>
+</html>
+
