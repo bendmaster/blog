@@ -7,15 +7,21 @@
     <div class="post-date">
       {{p.created.strftime("%b %d, %Y")}}
     </div>
-    <div> Edit </div>
+    <a href="/delete/{{p.key().id()}}" class = "btn btn-danger">
+            delete
+          </a>
 
+          <a href="/edit/{{p.key().id()}}" class = "btn btn-primary">
+            edit
+          </a>
   </div>
 
   <div class="post-content">
-    {{p._render_text | safe}}
+  {{p.content}}
   </div>
-  <div class="delete-post">
-    <a href="/delete?delete={{p}}">Delete</a>
-  </div>
-
+  <ul>
+  {% for comment in p.comments%}
+  <li>{{comment.comment}}{{comment.submitter}}</li>
+  {% endfor %}
+  </ul>
 </div>
