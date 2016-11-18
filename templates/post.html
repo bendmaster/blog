@@ -2,64 +2,87 @@
 
 {% block content %}
 
-<div class="post">
+<!-- <div class="post"> -->
+<div class="row">
 
+  <div class="post-area">
+    <a class="new-post btn btn-default" href="/newpost">new post</a>
+  </div>
+</div>
+<br>
 <div class="post-heading row">
 
-    <div class="post-title col-md-7">
-      <a href="/{{post.key().id()}}">
-        {{post.subject}}
-      </a>
-    </div>
+    <div class="post-title col-md-5">
+      {{post.subject}}
+      </div>
 
     <div class = "col-md-1">
+      {% if user.key().id()|int() == post.created_by|int() %}
       <a href="/delete/{{post.key().id()}}" class = "btn btn-default">
         delete
       </a>
+      {% endif %}
     </div>
     <div class = "col-md-1">
-      <a href="/edit/{{post.key().id()}}" class = "btn btn-default">
-        edit
-      </a>
+      {% if user.key().id()|int() == post.created_by|int() %}
+        <a href="/edit/{{post.key().id()}}" class = "btn btn-default">
+          edit
+        </a>
+      {% endif %}
     </div>
     <div class = "col-md-1">
+    {% if likeOption == 'like' %}
       <a href="/like/{{post.key().id()}}" class = "btn btn-primary">
-            {{likeOption}} | Likes: {{likeCount}}
+            {{likeOption}}
       </a>
+      {% else %}
+      <a href="/like/{{post.key().id()}}" class = "btn btn-danger">
+            {{likeOption}}
+      </a>
+      {% endif %}
 
     </div>
-    <div class="post-date col-md-2">
-      {{post.created.strftime("%b %d, %Y")}}
-    </div>
+    <div class = "col-md-2">
+      <h4>
+            Likes: {{post.likes | length}}
+      </h4>
+      </div>
+      <div class="post-date col-md-2">
+        <h4>{{post.created.strftime("%b %d, %Y")}}</h4>
+      </div>
   </div>
 <div class="row">
     <div class="post-content col-md-12">
       {{post.content}}
     </div>
-    <form method="post">
-      <div class="form-group">
-        <label>comment</label>
-        <textarea class="form-control" name="comment_text" id="text">{{content}}</textarea>
-      </div>
-      <div class="form-group">
-        <div class="error">{{error}}</div>
-      </div>
-      <div class="form-group">
-        <input type="submit" class="btn btn-default">
-      </div>
-    </form>
-    <div class="post-heading row">
-      <div class="post-title col-md-8">Comments
-      </div>
+  </div>
+<div class = "row">
+  <form method="post">
+    <div class="form-group">
+      <label>comment</label>
+      <textarea class="form-control" name="comment_text" id="text">{{content}}</textarea>
     </div>
+    {% if error %}
+    <div class="form-group">
+      <div class="error form-control">{{error}}</div>
+    </div>
+    {% endif %}
+    <div class="form-group">
+      <input type="submit" class="btn btn-default">
+    </div>
+  </form>
+  </div>
+
+<div class="row">
+  <div class="post-heading post-title col-md-8">Comments</div>
     <div class="col-md-12">
       <ul>
         {% for comment in comments %}
-        <li>{{comment.comment_text}}<br> Sent by:{{comment.posted_by}}</li>
+        <li>{{comment.comment_text}}<br> sent by: {{comment.poster_username}}</li>
         {% endfor %}
       </ul>
-    </div>
-  </div>
+      </div>
 </div>
+
 
 {% endblock %}

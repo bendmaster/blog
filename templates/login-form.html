@@ -1,23 +1,23 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <link rel="stylesheet" type="text/css" href="../static/login.css">
-  <title>BLogin</title>
-</head>
-<body>
-<div class="login-page">
-  <div class="form">
-    <form class="login-form" method="post">
-      <input type="text" name="username" value="{{username}}" placeholder="username" />
-      <input type="password" name="password" value="" placeholder="password">
+{% extends "base.html" %}
+
+{% block content %}
+
+<br>
+<div class="row">
+  <form method="post">
+    <div class="form-group col-md-6 col-md-offset-3">
+      <input class="form-control" type="text" name="username" value="{{username}}" placeholder="username" />
+      <br>
+      <input class="form-control" type="password" name="password" value="" placeholder="password">
+      <br>
       <div class="error">
         {{error}}
       </div>
-      <button>login</button>
-      <p class="message">Not registered? <a href="/signup">Create an account</a></p>
+      <input type="submit" style="font-size: 1.2em" class="btn btn-primary form-control text-center">
+      <br>
+      <br>
+      <p class="col-md-12">Not registered? <a href="/signup">Create an account</a></p>
     </form>
   </div>
-</div>
-</body>
-</html>
 
+ {% endblock %}

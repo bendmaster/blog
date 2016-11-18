@@ -1,30 +1,32 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <link rel="stylesheet" type="text/css" href="../static/login.css">
-  <title>Blog Sign-up</title>
-</head>
-<body>
-<div class="login-page">
-  <div class="form">
-    <form class="login-form" method="post">
-      <input type="text" name="username" value="{{username}}" placeholder="username" />
-        <div class=error> {{error_username}} </div>
-      <input type="password" name="password" value="" placeholder="password">
-        <div class=error> {{error_password}} </div>
-      <input type="password" name="verify" value="" placeholder="verify your password">
-        <div class=error> {{error_verify}} </div>
-      <input type="text" name="email" value="{{email}}" placeholder="email address" />
-        <div class=error> {{error_email}} </div>
+{% extends "base.html" %}
+
+{% block content %}
+<br>
+<div class="row">
+  <form method="post">
+    <div class="form-group col-md-6 col-md-offset-3">
+      <input class="form-control" type="text" name="username" value="{{username}}" placeholder="username" />
+      <div class=error> {{error_username}} </div>
+      <br>
+      <input class="form-control" type="password" name="password" value="" placeholder="password">
+      <div class=error> {{error_password}} </div>
+      <br>
+      <input class="form-control" type="password" name="verify" value="" placeholder="verify your password">
+      <div class=error> {{error_verify}} </div>
+      <br>
+      <input class="form-control" type="text" name="email" value="{{email}}" placeholder="email address" />
+      <div class=error> {{error_email}} </div>
       <div class="error">
         {{error}}
       </div>
-      <button>submit</button>
-      <p class="message">Already registered? <a href="/login">Login</a></p>
-    </form>
-  </div>
+    <br>
+    <input type="submit" style="font-size: 1.2em" class="btn btn-primary form-control text-center">
+      <br>
+      <br>
+      <p class="col-md-12">Already registered? <a href="/login">Login</a></p>
+
+    </div>
+  </form>
 </div>
-</body>
 
-
-</html>
+ {% endblock %}

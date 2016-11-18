@@ -145,7 +145,7 @@ class Post(db.Model):
     last_modified = db.DateTimeProperty(auto_now=True)
     created_by = db.StringProperty()
     likes = db.StringListProperty()
-    # parent_post = db.StringProperty()
+
 
     def render(self):
         """Converts lines into breaks for easy readability"""
@@ -157,6 +157,7 @@ class Comment(db.Model):
     orig_post = db.IntegerProperty(required=True)
     comment_text = db.TextProperty(required=True)
     posted_by = db.TextProperty(required=True)
+    poster_username = db.TextProperty(required=True)
     created = db.DateTimeProperty(auto_now_add=True)
 
     def render(self):
@@ -237,8 +238,6 @@ class PostPage(BlogHandler):
 
         comments = Comment.all().filter("orig_post =", int(post_id))
 
-        #comments = db.GqlQuery("SELECT * FROM Comment")
-
 
         if not post:
             self.error(404)
@@ -249,14 +248,6 @@ class PostPage(BlogHandler):
         self.render("post.html", post=post, comments=comments, likeOption=likeOption,
                     likeCount=likeCount)
 
-        # if not post:
-        #     self.error(404)
-        #     return
-        # post._render_text = post.content.replace('\n', '<br>')
-
-        # self.render("post.html", post=post, likeText=likeText,
-        #     totalLikes=totalLikes, user_id=user_id, comments=comments)
-
     def post(self, post_id):
         if not self.user:
             return self.redirect('/')
@@ -264,12 +255,16 @@ class PostPage(BlogHandler):
         comment_text = self.request.get('comment_text')
         orig_post = int(post_id)
         posted_by = self.read_secure_cookie('user_id')
+        poster_username = User.by_id(int(posted_by))
+        poster_username = poster_username.name
+
 
         if comment_text:
             comment = Comment(parent=blog_key(), comment_text=comment_text,
-                        orig_post=orig_post, posted_by=posted_by)
+                        orig_post=orig_post, posted_by=posted_by,
+                        poster_username=poster_username)
             comment.put()
-            self.redirect('/%s' % orig_post)
+            self.redirect('/post/%s' % orig_post)
         else:
             error = "Please fill out a comment!"
             self.render("post.html", error=error)
@@ -299,7 +294,7 @@ class NewPost(BlogHandler):
             p = Post(parent=blog_key(), subject=subject,
                      content=content, created_by=user)
             p.put()
-            self.redirect('/%s' % str(p.key().id()))
+            self.redirect('post/%s' % str(p.key().id()))
         else:
             error = "subject and content, please!"
             self.render(
@@ -416,8 +411,8 @@ class LikeAction(BlogHandler):
                 post.likes.append(user_id)
 
             post.put()
-            error = "Thanks!"
-            self.render('error.html', error = error)
+
+            self.redirect('/post/%s' % str(post.key().id()))
             return
 
         else:
@@ -485,11 +480,7 @@ class EditPage(BlogHandler):
             post.subject = subject
             post.content = content
             post.put()
-            # if post.parent_post:
-            #     redirect_id = post.parent_post
-            # else:
-            #     redirect_id = post.key().id()
-            # self.redirect('/%s' % str(redirect_id))
+
             self.redirect('/%s' % str(post_id))
         else:
             error = "subject and content, please!"
@@ -508,7 +499,7 @@ class Welcome(BlogHandler):
 
 
 app = webapp2.WSGIApplication([('/', BlogFront),
-                               ('/([0-9]+)', PostPage),
+                               ('/post/([0-9]+)', PostPage),
                                ('/newpost', NewPost),
                                ('/edit/([0-9]+)', EditPage),
                                ('/delete/([0-9]+)', DeletePage),
