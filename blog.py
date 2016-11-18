@@ -77,10 +77,6 @@ def users_key(group='default'):
     return db.Key.from_path('users', group)
 
 
-def delete_entity(name):
-    name.key.delete()
-
-
 def blog_key(name='default'):
     """Creates an ancestor element for Blogs entity"""
     return db.Key.from_path('blogs', name)
@@ -116,9 +112,9 @@ class User(db.Model):
     email = db.StringProperty()
 
     @classmethod
-    def by_id(cls, uid):
+    def by_id(cls, user_id):
         """Returns user info from the Users entity"""
-        return cls.get_by_id(uid, parent = users_key())
+        return cls.get_by_id(user_id, parent = users_key())
 
     @classmethod
     def by_name(cls, name):
@@ -148,7 +144,7 @@ class Post(db.Model):
     created = db.DateTimeProperty(auto_now_add=True)
     last_modified = db.DateTimeProperty(auto_now=True)
     created_by = db.StringProperty()
-    likes = db.StringProperty()
+    likes = db.StringListProperty()
     # parent_post = db.StringProperty()
 
     def render(self):
@@ -159,14 +155,14 @@ class Post(db.Model):
 
 class Comment(db.Model):
     orig_post = db.IntegerProperty(required=True)
-    comment = db.TextProperty(required=True)
+    comment_text = db.TextProperty(required=True)
     posted_by = db.TextProperty(required=True)
     created = db.DateTimeProperty(auto_now_add=True)
 
     def render(self):
         """Converts lines into breaks for easier readability"""
         self._render_text = self.content.replace('\n', '<br>')
-        return render_str("comment.html", p=self)
+        return render_str("comment.html", c=self)
 
 
 class BlogHandler(webapp2.RequestHandler):
@@ -209,8 +205,8 @@ class BlogHandler(webapp2.RequestHandler):
     def initialize(self, *a, **kw):
         """Reads user_id cookie and, if valid, sets the user as that user_id"""
         webapp2.RequestHandler.initialize(self, *a, **kw)
-        uid = self.read_secure_cookie('user_id')
-        self.user = uid and User.by_id(int(uid))
+        user_id = self.read_secure_cookie('user_id')
+        self.user = user_id and User.by_id(int(user_id))
 
 
 class BlogFront(BlogHandler):
@@ -219,8 +215,7 @@ class BlogFront(BlogHandler):
         """Renders blog frontpage with blogs in order of
         creation time, newest-oldest"""
         posts = db.GqlQuery("SELECT * FROM Post ORDER BY created DESC")
-        user_id = self.read_secure_cookie("user_id")  # this is new
-        # user_id is new
+        user_id = self.read_secure_cookie("user_id")
         self.render('front.html', posts=posts, user_id=user_id)
 
 
@@ -238,25 +233,21 @@ class PostPage(BlogHandler):
         else:
              likeOption = 'like'
 
-        if post.likes:
-            likeCount = len(post.likes)
-        else:
-            likeCount = 0
+        likeCount = len(post.likes)
 
-        comments = []
+        comments = Comment.all().filter("orig_post =", int(post_id))
 
-        #comments = db.GqlQuery("SELECT * FROM Comment WHERE orig_post = %s" % post)
+        #comments = db.GqlQuery("SELECT * FROM Comment")
 
-        # for comment in comments:
-        #     print(comments)
 
         if not post:
             self.error(404)
             return
 
         post._render_text = post.content.replace('\n', '<br>')
-        self.render("permalink.html", post=post, comments=comments, likeoption=likeOption,
-                    likes=likeCount)
+
+        self.render("post.html", post=post, comments=comments, likeOption=likeOption,
+                    likeCount=likeCount)
 
         # if not post:
         #     self.error(404)
@@ -264,26 +255,24 @@ class PostPage(BlogHandler):
         # post._render_text = post.content.replace('\n', '<br>')
 
         # self.render("post.html", post=post, likeText=likeText,
-        #     totalLikes=totalLikes, uid=uid, comments=comments)
+        #     totalLikes=totalLikes, user_id=user_id, comments=comments)
 
     def post(self, post_id):
         if not self.user:
             return self.redirect('/')
 
-        subject = self.request.get('subject')
-        content = self.request.get('content')
+        comment_text = self.request.get('comment_text')
+        orig_post = int(post_id)
+        posted_by = self.read_secure_cookie('user_id')
 
-        user_id = self.read_secure_cookie('user_id')
-
-        if subject and content:
-            post = Post(parent=blog_key(), subject=subject,
-                        content=content, created_by=user_id)
-            post.put()
-            return self.redirect('/post/%s' % post_id)
+        if comment_text:
+            comment = Comment(parent=blog_key(), comment_text=comment_text,
+                        orig_post=orig_post, posted_by=posted_by)
+            comment.put()
+            self.redirect('/%s' % orig_post)
         else:
-            error = "subject and content, please!"
-            self.render(
-                "post.html", subject=subject, content=content, error=error)
+            error = "Please fill out a comment!"
+            self.render("post.html", error=error)
 
 
 class NewPost(BlogHandler):
@@ -304,7 +293,7 @@ class NewPost(BlogHandler):
 
         subject = self.request.get('subject')
         content = self.request.get('content')
-        user = self.request.cookies.get('user_id')
+        user = self.read_secure_cookie('user_id')
 
         if subject and content:
             p = Post(parent=blog_key(), subject=subject,
@@ -407,7 +396,7 @@ class Logout(BlogHandler):
 
 
 class LikeAction(BlogHandler):
-    """This class allows users to anonymously increase or
+    """This class allows users to increase or
         decrease the like count of a post"""
     def get(self, post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
@@ -427,12 +416,14 @@ class LikeAction(BlogHandler):
                 post.likes.append(user_id)
 
             post.put()
-
-            self.redirect('/post/%s' % str(post.key().id()))
+            error = "Thanks!"
+            self.render('error.html', error = error)
+            return
 
         else:
             error = 'Liking your own posts is tacky. Denied.'
-            self.redirect('/post/%s' % str(post.key().id()), error = error)
+            self.render('error.html', error = error)
+            return
 
 
 class DeletePage(BlogHandler):
@@ -450,7 +441,7 @@ class DeletePage(BlogHandler):
 
         user_id = self.read_secure_cookie('user_id')
 
-        if post.user_id != uid:
+        if post.created_by != user_id:
             error = 'This is not your post. Denied.'
         else:
             error = ''
@@ -475,11 +466,11 @@ class EditPage(BlogHandler):
         user_id = self.read_secure_cookie('user_id')
 
         if post.created_by != user_id:
-            error = 'You are not permitted to edit this post'
+            error = ('You are not permitted to edit this post, %s' % str(user_id))
         else:
             error = ''
 
-        self.render("edit.html", post=post, error=error, uid=uid)
+        self.render("edit.html", post=post, error=error, user_id=user_id)
 
     def post(self, post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
@@ -498,8 +489,8 @@ class EditPage(BlogHandler):
             #     redirect_id = post.parent_post
             # else:
             #     redirect_id = post.key().id()
-            # self.redirect('/post/%s' % str(redirect_id))
-            self.redirect('/post/%s' % str(post_id))
+            # self.redirect('/%s' % str(redirect_id))
+            self.redirect('/%s' % str(post_id))
         else:
             error = "subject and content, please!"
             self.render("edit.html", post=post, error=error)
@@ -516,17 +507,13 @@ class Welcome(BlogHandler):
             self.redirect('/signup')
 
 
-class ViewPosts(BlogHandler):
-
-    def get(self, posts):
-        pass
-
 app = webapp2.WSGIApplication([('/', BlogFront),
                                ('/([0-9]+)', PostPage),
                                ('/newpost', NewPost),
                                ('/edit/([0-9]+)', EditPage),
                                ('/delete/([0-9]+)', DeletePage),
                                ('/signup', Register),
+                               ('/like/([0-9]+)', LikeAction),
                                ('/login', Login),
                                ('/logout', Logout),
                                ('/welcome', Welcome),

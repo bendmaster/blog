@@ -1,27 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+
 <div class="post">
-  <div class="post-heading">
-    <div class="post-title">
-      {{p.subject}}
+
+<div class="post-heading row">
+
+    <div class="post-title col-md-7">
+      <a href="/{{post.key().id()}}">
+        {{post.subject}}
+      </a>
     </div>
 
-    <div class="post-date">
-      {{p.created.strftime("%b %d, %Y")}}
+    <div class = "col-md-1">
+      <a href="/delete/{{post.key().id()}}" class = "btn btn-default">
+        delete
+      </a>
     </div>
-    <a href="/delete/{{p.key().id()}}" class = "btn btn-danger">
-            delete
-          </a>
+    <div class = "col-md-1">
+      <a href="/edit/{{post.key().id()}}" class = "btn btn-default">
+        edit
+      </a>
+    </div>
+    <div class = "col-md-1">
+      <a href="/like/{{post.key().id()}}" class = "btn btn-primary">
+            {{likeOption}} | Likes: {{likeCount}}
+      </a>
 
-          <a href="/edit/{{p.key().id()}}" class = "btn btn-primary">
-            edit
-          </a>
+    </div>
+    <div class="post-date col-md-2">
+      {{post.created.strftime("%b %d, %Y")}}
+    </div>
   </div>
-
-  <div class="post-content">
-  {{p.content}}
+<div class="row">
+    <div class="post-content col-md-12">
+      {{post.content}}
+    </div>
+    <form method="post">
+      <div class="form-group">
+        <label>comment</label>
+        <textarea class="form-control" name="comment_text" id="text">{{content}}</textarea>
+      </div>
+      <div class="form-group">
+        <div class="error">{{error}}</div>
+      </div>
+      <div class="form-group">
+        <input type="submit" class="btn btn-default">
+      </div>
+    </form>
+    <div class="post-heading row">
+      <div class="post-title col-md-8">Comments
+      </div>
+    </div>
+    <div class="col-md-12">
+      <ul>
+        {% for comment in comments %}
+        <li>{{comment.comment_text}}<br> Sent by:{{comment.posted_by}}</li>
+        {% endfor %}
+      </ul>
+    </div>
   </div>
-  <ul>
-  {% for comment in p.comments%}
-  <li>{{comment.comment}}{{comment.submitter}}</li>
-  {% endfor %}
-  </ul>
 </div>
+
+{% endblock %}
