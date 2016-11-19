@@ -52,8 +52,3 @@ Licensing
 -----------
 The author does not claim any right to this project. Feel free to use in whatever capacity you feel appropriate.
 
------------
-Credit
------------
-The login and signup pages were based on the template made available by Aigars Silkalns from his website http://codepen.io/colorlib/
-Credit for their appearance should be given to him.
