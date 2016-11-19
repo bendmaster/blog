@@ -78,7 +78,20 @@
     <div class="col-md-12">
       <ul>
         {% for comment in comments %}
-        <li>{{comment.comment_text}}<br> sent by: {{comment.poster_username}}</li>
+            <li>{{comment.comment_text}}
+              <br>
+              sent by: {{comment.poster_username}}
+                {% if user.key().id()|int() == comment.posted_by|int() %}
+                <br>
+                <a href="/editc/{{comment.key().id()}}">
+                  edit
+                </a>
+                |
+                <a href="/deletec/{{comment.key().id()}}">
+                  delete
+                </a>
+                {% endif %}
+            </li>
         {% endfor %}
       </ul>
       </div>
