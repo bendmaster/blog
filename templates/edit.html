@@ -12,6 +12,7 @@
     <div class="row">
       <h2 class = "col-md-4">edit post</h2>
     </div>
+    <div class="row">
     <form method="post">
       <div class="form-group">
         <label>subject</label>
@@ -28,9 +29,33 @@
         <input type="submit" class="btn btn-default">
       </div>
       <div class = "form-group">
-        <a href="/post/{{post.key().id()}}" type="submit" class="btn btn-danger pull-right">Cancel</a>
+        <a href="/post/{{post.key().id()}}" type="submit" class="btn btn-danger">Cancel</a>
       </div>
     </form>
+    </div>
+
+    {% elif comment %}
+    <div class="row">
+      <h2 class = "col-md-4">edit comment</h2>
+    </div>
+    <div class="row">
+      <form method="post">
+        <div class="form-group">
+          <label>comment</label>
+          <textarea class="form-control" name="comment_text" id="text">{{comment.comment_text}}</textarea>
+        </div>
+        {% if error %}
+        <div class="form-group">
+          <div class="error form-control">{{error}}</div>
+        </div>
+        {% endif %}
+        <div class="form-group">
+          <input type="submit" class="btn btn-default">
+        </div>
+        <div class = "form-group">
+          <a href="/post/{{comment.orig_post}}" type="submit" class="btn btn-danger">Cancel</a>
+        </div>
+      </form>
     </div>
 
 

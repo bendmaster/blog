@@ -487,6 +487,71 @@ class EditPage(BlogHandler):
             self.render("edit.html", post=post, error=error)
 
 
+class DeleteCommentPage(BlogHandler):
+
+    """This class allows user to delete their
+     own comments and prevents others from doing so"""
+
+    def get(self, comment_id):
+        key = db.Key.from_path('Comment', int(comment_id), parent=blog_key())
+        comment = db.get(key)
+
+        if not comment:
+            self.redirect("/")
+            return
+
+        user_id = self.read_secure_cookie('user_id')
+
+        if comment.posted_by != user_id:
+            error = 'This is not your comment. Denied.'
+            self.render("delete.html", error=error)
+        else:
+            db.delete(key)
+            self.redirect('/post/%s' % str(comment.orig_post))
+
+
+
+
+class EditCommentPage(BlogHandler):
+
+    """This class allows users to edit their posts and prevents
+    others from tampering with them"""
+
+    def get(self, comment_id):
+        key = db.Key.from_path('Comment', int(comment_id), parent=blog_key())
+        comment = db.get(key)
+
+        if not comment:
+            self.error(404)
+            return
+
+        user_id = self.read_secure_cookie('user_id')
+
+        if comment.posted_by != user_id:
+            error = ('You are not permitted to edit this comment, %s' % str(user_id))
+        else:
+            error = ''
+
+        self.render("edit.html", comment=comment, error=error, user_id=user_id)
+
+    def post(self, comment_id):
+        key = db.Key.from_path('Comment', int(comment_id), parent=blog_key())
+        comment = db.get(key)
+
+        user_id = self.read_secure_cookie('user_id')
+
+        comment_text = self.request.get('comment_text')
+
+        if comment_text and comment.posted_by == user_id:
+            comment.comment_text= comment_text
+            comment.put()
+
+            self.redirect('/post/%s' % str(comment.orig_post))
+        else:
+            error = "subject and content, please!"
+            self.render("edit.html", comment=comment, error=error)
+
+
 class Welcome(BlogHandler):
 
     def get(self):
@@ -503,6 +568,8 @@ app = webapp2.WSGIApplication([('/', BlogFront),
                                ('/newpost', NewPost),
                                ('/edit/([0-9]+)', EditPage),
                                ('/delete/([0-9]+)', DeletePage),
+                               ('/editc/([0-9]+)', EditCommentPage),
+                               ('/deletec/([0-9]+)', DeleteCommentPage),
                                ('/signup', Register),
                                ('/like/([0-9]+)', LikeAction),
                                ('/login', Login),
